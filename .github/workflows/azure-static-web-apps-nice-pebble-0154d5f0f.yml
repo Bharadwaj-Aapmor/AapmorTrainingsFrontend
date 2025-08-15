@@ -38,6 +38,20 @@ jobs:
             return await coredemo.getIDToken()
           result-encoding: string
 
+      # Ensure SPA routing file exists before build
+      - name: Ensure routes.json exists
+        run: |
+          mkdir -p public
+          echo '{
+            "routes": [
+              {
+                "route": "/*",
+                "serve": "/index.html",
+                "statusCode": 200
+              }
+            ]
+          }' > public/_routes.json
+
       - name: Build
         run: npm run build
 
@@ -56,6 +70,7 @@ jobs:
           api_location: ""
           output_location: "dist"
           github_id_token: ${{ steps.idtoken.outputs.result }}
+
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
@@ -66,5 +81,3 @@ jobs:
         uses: Azure/static-web-apps-deploy@v1
         with:
           action: "close"
-
-
