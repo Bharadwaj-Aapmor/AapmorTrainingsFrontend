@@ -15,60 +15,60 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     permissions:
-      id-token: write
-      contents: read
+       id-token: write
+       contents: read
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
           lfs: false
 
-      - name: Install dependencies
-        run: npm ci
+      # 1️⃣ Setup Node.js for Vite/React/Angular build
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
+      # 2️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # 3️⃣ Build the app
+      # If you want Azure env variables to be embedded at build time, uncomment and add them here
+      - name: Build app
+        run: npm run build
+        # env:
+        #   VITE_AUTHX_URL: ${{ secrets.VITE_AUTHX_URL }}
+        #   VITE_AUTHX_USERSDEPARTMENTNAMES: ${{ secrets.VITE_AUTHX_USERSDEPARTMENTNAMES }}
+        #   VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+        #   VITE_DOMAIN: ${{ secrets.VITE_DOMAIN }}
+        #   VITE_PERMISSIONS_URL: ${{ secrets.VITE_PERMISSIONS_URL }}
+        #   VITE_REDIRECT_URL: ${{ secrets.VITE_REDIRECT_URL }}
+
+      # 4️⃣ Install OIDC Client from Core Package
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
 
+      # 5️⃣ Get Id Token
       - name: Get Id Token
         uses: actions/github-script@v6
         id: idtoken
         with:
-          script: |
-            const coredemo = require('@actions/core')
-            return await coredemo.getIDToken()
-          result-encoding: string
+           script: |
+               const coredemo = require('@actions/core')
+               return await coredemo.getIDToken()
+           result-encoding: string
 
-      # Ensure SPA routing file exists before build
-      - name: Ensure routes.json exists
-        run: |
-          mkdir -p public
-          echo '{
-            "routes": [
-              {
-                "route": "/*",
-                "serve": "/index.html",
-                "statusCode": 200
-              }
-            ]
-          }' > public/_routes.json
-
-      - name: Build
-        run: npm run build
-
-      - name: List build output
-        run: |
-          echo "=== DIST FOLDER CONTENTS ==="
-          ls -R dist
-
+      # 6️⃣ Deploy to Azure Static Web Apps
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_NICE_PEBBLE_0154D5F0F }}
           action: "upload"
-          app_location: "/"
-          api_location: ""
-          output_location: "dist"
+          app_location: "/" # App source code path
+          api_location: ""  # API path - optional
+          output_location: "dist" # Built app content directory
           github_id_token: ${{ steps.idtoken.outputs.result }}
 
   close_pull_request_job:
