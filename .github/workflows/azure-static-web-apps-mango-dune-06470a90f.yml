@@ -44,15 +44,23 @@ jobs:
         run: cp routes.json dist/ || echo "no routes.json found"
 
       # Deploy to Azure Static Web Apps
-      - name: Deploy to Azure Static Web Apps
+      - name: Build And Deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_MANGO_DUNE_06470A90F }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # For PR comments
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/"        # Root of repo
-          api_location: ""         # No backend APIs here
-          output_location: "dist"  # Build output folder
+          app_location: "/"
+          api_location: ""
+          output_location: "dist"
+        env:
+          VITE_AUTHX_URL: ${{ secrets.VITE_AUTHX_URL }}
+          VITE_AUTHX_USERSDEPARTMENTNAMES: ${{ secrets.VITE_AUTHX_USERSDEPARTMENTNAMES }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_DOMAIN: ${{ secrets.VITE_DOMAIN }}
+          VITE_PERMISSIONS_URL: ${{ secrets.VITE_PERMISSIONS_URL }}
+          VITE_REDIRECT_URL: ${{ secrets.VITE_REDIRECT_URL }}
+
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -64,3 +72,4 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_MANGO_DUNE_06470A90F }}
           action: "close"
+
