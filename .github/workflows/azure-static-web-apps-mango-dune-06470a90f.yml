@@ -17,15 +17,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
+      # ✅ Clean install dependencies
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Project
+      - name: Build app
         run: npm run build
         env:
           VITE_AUTHX_URL: ${{ secrets.VITE_AUTHX_URL }}
@@ -35,10 +36,7 @@ jobs:
           VITE_PERMISSIONS_URL: ${{ secrets.VITE_PERMISSIONS_URL }}
           VITE_REDIRECT_URL: ${{ secrets.VITE_REDIRECT_URL }}
 
-      - name: Copy routes.json
-        run: cp routes.json dist/ || echo "no routes.json found"
-
-      - name: Deploy to Azure Static Web Apps
+      - name: Build And Deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
